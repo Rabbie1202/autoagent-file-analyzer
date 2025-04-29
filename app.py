@@ -3,12 +3,10 @@ import pandas as pd
 import openai
 import csv
 
-# Set your OpenAI API Key
+# Set your OpenAI API Key securely
 openai.api_key = st.secrets["OPENAI_API_KEY"]
 
-
 st.title("🧠 Autoagent Client File Analyzer")
-
 st.write("Upload a client tax or payment file (.csv or .xlsx) and get AI mapping suggestions!")
 
 # File uploader
@@ -16,23 +14,30 @@ uploaded_file = st.file_uploader("Choose a file", type=["csv", "xlsx"])
 
 if uploaded_file:
     try:
-        # CSV handling
+        # === Handle CSV files ===
         if uploaded_file.name.endswith('.csv'):
             uploaded_file.seek(0)
-            sample = uploaded_file.read(2048).decode('utf-8')
+            sample = uploaded_file.read(2048).decode('utf-8', errors='ignore')
             uploaded_file.seek(0)
             sniffer = csv.Sniffer()
             dialect = sniffer.sniff(sample)
-            df = pd.read_csv(uploaded_file, delimiter=dialect.delimiter)
+
+            df = pd.read_csv(
+                uploaded_file,
+                delimiter=dialect.delimiter,
+                quoting=csv.QUOTE_MINIMAL,
+                on_bad_lines='skip'  # Skip malformed lines (pandas >= 1.3.0)
+            )
+
+        # === Handle Excel files ===
         else:
-            # Excel handling
             df = pd.read_excel(uploaded_file)
 
-        # Show preview
+        # === Show preview ===
         st.write("### Preview of Uploaded File")
         st.dataframe(df.head())
 
-        # Button to trigger AI analysis
+        # === Trigger GPT Analysis ===
         if st.button("🔍 Analyze File"):
             columns = df.columns.tolist()
             sample_data = df.head(5).to_dict(orient='records')
