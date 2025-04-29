@@ -16,6 +16,9 @@ if uploaded_file:
     # Read the file
     if uploaded_file.name.endswith('.csv'):
         df = pd.read_csv(uploaded_file)
+except pd.errors.ParserError:
+    uploaded_file.seek(0)  # Reset file pointer
+    df = pd.read_csv(uploaded_file, delimiter='\t')  # Try tab-delimited
     else:
         df = pd.read_excel(uploaded_file)
 
