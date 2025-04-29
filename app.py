@@ -4,7 +4,8 @@ import openai
 import csv
 
 # Set your OpenAI API Key
-openai.api_key = 'YOUR_OPENAI_API_KEY'
+openai.api_key = st.secrets["OPENAI_API_KEY"]
+
 
 st.title("🧠 Autoagent Client File Analyzer")
 
