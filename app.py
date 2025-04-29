@@ -3,7 +3,7 @@ import pandas as pd
 import openai
 import csv
 
-# Initialize OpenAI client with Streamlit secret
+# Initialize OpenAI client with secure key
 client = openai.OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 st.title("🧠 Autoagent Client File Analyzer")
@@ -13,7 +13,7 @@ uploaded_file = st.file_uploader("Choose a file", type=["csv", "xlsx"])
 
 if uploaded_file:
     try:
-        # === CSV Handling ===
+        # === Handle CSV files ===
         if uploaded_file.name.endswith('.csv'):
             uploaded_file.seek(0)
             sample = uploaded_file.read(2048).decode('utf-8', errors='ignore')
@@ -28,7 +28,7 @@ if uploaded_file:
                 on_bad_lines='skip'  # Requires pandas >= 1.3.0
             )
 
-        # === Excel Handling ===
+        # === Handle Excel files ===
         else:
             df = pd.read_excel(uploaded_file)
 
@@ -63,7 +63,7 @@ Output as a table: [Client Column Name] | [Suggested Autoagent Field] | [Confide
 """
 
             response = client.chat.completions.create(
-                model="gpt-4",
+                model="gpt-3.5-turbo",  # ✅ works for all users
                 messages=[
                     {"role": "system", "content": "You help Autoagent integrators understand client tax data."},
                     {"role": "user", "content": prompt}
