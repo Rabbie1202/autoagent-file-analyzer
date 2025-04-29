@@ -3,18 +3,17 @@ import pandas as pd
 import openai
 import csv
 
-# Set your OpenAI API Key securely
-openai.api_key = st.secrets["OPENAI_API_KEY"]
+# Initialize OpenAI client with Streamlit secret
+client = openai.OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 st.title("🧠 Autoagent Client File Analyzer")
 st.write("Upload a client tax or payment file (.csv or .xlsx) and get AI mapping suggestions!")
 
-# File uploader
 uploaded_file = st.file_uploader("Choose a file", type=["csv", "xlsx"])
 
 if uploaded_file:
     try:
-        # === Handle CSV files ===
+        # === CSV Handling ===
         if uploaded_file.name.endswith('.csv'):
             uploaded_file.seek(0)
             sample = uploaded_file.read(2048).decode('utf-8', errors='ignore')
@@ -26,18 +25,18 @@ if uploaded_file:
                 uploaded_file,
                 delimiter=dialect.delimiter,
                 quoting=csv.QUOTE_MINIMAL,
-                on_bad_lines='skip'  # Skip malformed lines (pandas >= 1.3.0)
+                on_bad_lines='skip'  # Requires pandas >= 1.3.0
             )
 
-        # === Handle Excel files ===
+        # === Excel Handling ===
         else:
             df = pd.read_excel(uploaded_file)
 
-        # === Show preview ===
+        # === Show Preview ===
         st.write("### Preview of Uploaded File")
         st.dataframe(df.head())
 
-        # === Trigger GPT Analysis ===
+        # === GPT Mapping Analysis ===
         if st.button("🔍 Analyze File"):
             columns = df.columns.tolist()
             sample_data = df.head(5).to_dict(orient='records')
@@ -63,7 +62,7 @@ Suggest what each column most likely represents from this list:
 Output as a table: [Client Column Name] | [Suggested Autoagent Field] | [Confidence %].
 """
 
-            response = openai.ChatCompletion.create(
+            response = client.chat.completions.create(
                 model="gpt-4",
                 messages=[
                     {"role": "system", "content": "You help Autoagent integrators understand client tax data."},
@@ -72,7 +71,7 @@ Output as a table: [Client Column Name] | [Suggested Autoagent Field] | [Confide
                 temperature=0.1
             )
 
-            result = response['choices'][0]['message']['content']
+            result = response.choices[0].message.content
             st.write("### 📝 AI Mapping Suggestions")
             st.text(result)
 
